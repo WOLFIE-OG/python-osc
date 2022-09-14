@@ -39,40 +39,41 @@ class OscMessage(object):
             # Parse each parameter given its type.
             for param in type_tag:
                 val = NotImplemented  # type: Any
-                if param == "i":  # Integer.
-                    val, index = osc_types.get_int(self._dgram, index)
-                elif param == "h":  # Int64.
-                    val, index = osc_types.get_int64(self._dgram, index)
-                elif param == "f":  # Float.
-                    val, index = osc_types.get_float(self._dgram, index)
-                elif param == "d":  # Double.
-                    val, index = osc_types.get_double(self._dgram, index)
-                elif param == "s":  # String.
-                    val, index = osc_types.get_string(self._dgram, index)
-                elif param == "b":  # Blob.
-                    val, index = osc_types.get_blob(self._dgram, index)
-                elif param == "r":  # RGBA.
-                    val, index = osc_types.get_rgba(self._dgram, index)
-                elif param == "m":  # MIDI.
-                    val, index = osc_types.get_midi(self._dgram, index)
-                elif param == "t":  # osc time tag:
-                    val, index = osc_types.get_timetag(self._dgram, index)
-                elif param == "T":  # True.
-                    val = True
-                elif param == "F":  # False.
-                    val = False
-                elif param == "[":  # Array start.
-                    array = []  # type: List[Any]
-                    param_stack[-1].append(array)
-                    param_stack.append(array)
-                elif param == "]":  # Array stop.
-                    if len(param_stack) < 2:
-                        raise ParseError('Unexpected closing bracket in type tag: {0}'.format(type_tag))
-                    param_stack.pop()
-                # TODO: Support more exotic types as described in the specification.
-                else:
-                    logging.warning('Unhandled parameter type: {0}'.format(param))
-                    continue
+                match param:
+                    case "i":  # Integer.
+                        val, index = osc_types.get_int(self._dgram, index)
+                    case "h":  # Int64.
+                        val, index = osc_types.get_int64(self._dgram, index)
+                    case "f":  # Float.
+                        val, index = osc_types.get_float(self._dgram, index)
+                    case "d":  # Double.
+                        val, index = osc_types.get_double(self._dgram, index)
+                    case "s":  # String.
+                        val, index = osc_types.get_string(self._dgram, index)
+                    case "b":  # Blob.
+                        val, index = osc_types.get_blob(self._dgram, index)
+                    case "r":  # RGBA.
+                        val, index = osc_types.get_rgba(self._dgram, index)
+                    case "m":  # MIDI.
+                        val, index = osc_types.get_midi(self._dgram, index)
+                    case "t":  # osc time tag:
+                        val, index = osc_types.get_timetag(self._dgram, index)
+                    case "T":  # True.
+                        val = True
+                    case "F":  # False.
+                        val = False
+                    case "[":  # Array start.
+                        array = []  # type: List[Any]
+                        param_stack[-1].append(array)
+                        param_stack.append(array)
+                    case "]":  # Array stop.
+                        if len(param_stack) < 2:
+                            raise ParseError('Unexpected closing bracket in type tag: {0}'.format(type_tag))
+                        param_stack.pop()
+                    # TODO: Support more exotic types as described in the specification.
+                    case _:
+                        logging.warning('Unhandled parameter type: {0}'.format(param))
+                        continue
                 if param not in "[]":
                     param_stack[-1].append(val)
             if len(param_stack) != 1:
